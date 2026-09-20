@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="com.albionsolomarket.app"; compileSdk=35
- defaultConfig { applicationId="com.albionsolomarket.app"; minSdk=26; targetSdk=35; versionCode=2; versionName="0.2.0-beta" }
+ defaultConfig { applicationId="com.albionsolomarket.app"; minSdk=26; targetSdk=35; versionCode=3; versionName="0.3.0-beta" }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
  buildFeatures { compose=true }
 }
@@ -13,6 +13,7 @@ dependencies {
  implementation("androidx.compose.ui:ui-tooling-preview")
  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
  implementation("com.squareup.okhttp3:okhttp:4.12.0")
+ implementation("org.json:json:20250517")
  debugImplementation("androidx.compose.ui:ui-tooling")
  testImplementation("junit:junit:4.13.2")
 }
