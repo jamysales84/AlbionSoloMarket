@@ -88,7 +88,7 @@ $Composable fun App(){
    else opportunities.forEach{OpportunityCard(it,monitoredItems[it.item]?:it.item)}
    Text(MarketEngine.nextBestAction(opportunities));HorizontalDivider();Text("Aparência")
    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){AppTheme.entries.forEach{t->FilterChip(theme==t,{theme=t},{Text(when(t){AppTheme.AUTO->"Auto";AppTheme.LIGHT->"Claro";AppTheme.DARK->"Escuro"})})}}
-   Text("Paleta");FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){Palette.entries.forEach{p->FilterChip(palette==p,{palette=p},{Text(paletteLabel(p))})}}
+   Text("Paleta");Column(verticalArrangement=Arrangement.spacedBy(6.dp)){Palette.entries.chunked(3).forEach{group->Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){group.forEach{p->FilterChip(palette==p,{palette=p},{Text(paletteLabel(p))})}}}}
    Text("Fonte dos preços: Albion Online Data Project",style=MaterialTheme.typography.bodySmall)
   }
  }}}}
