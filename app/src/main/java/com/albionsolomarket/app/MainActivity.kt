@@ -91,7 +91,7 @@ class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.on
    Text("Paleta");Column(verticalArrangement=Arrangement.spacedBy(6.dp)){Palette.entries.chunked(3).forEach{group->Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){group.forEach{p->FilterChip(palette==p,{palette=p},{Text(paletteLabel(p))})}}}}
    Text("Fonte dos preços: Albion Online Data Project",style=MaterialTheme.typography.bodySmall)
   }
- }}}}
+ }}}
 }
 
 @Composable private fun OpportunityCard(o:Opportunity,name:String){val accent=MaterialTheme.colorScheme.primary;Card(colors=CardDefaults.cardColors(containerColor=MaterialTheme.colorScheme.secondaryContainer),modifier=Modifier.fillMaxWidth()){Row(Modifier.fillMaxWidth()){Box(Modifier.width(5.dp).height(190.dp).background(accent));Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){Text("$name (${o.item})",style=MaterialTheme.typography.titleMedium,color=accent);Text("${o.origin} → ${o.destination}");Text("Lucro líquido: ${fmt(o.net)}",style=MaterialTheme.typography.titleMedium,color=accent);Text("ROI: ${"%.2f".format(o.roi)}%  •  Prata/hora: ${fmt(o.silverHour)}",color=accent);Text("Comprar: ${fmt(o.buy)}  •  Vender: ${fmt(o.sell)}  •  Quantidade: ${o.qty}");Text("Idade do preço: ${o.ageMinutes} min  •  Confiança: ${confidenceLabel(o.confidence)}");Text("Fonte: Albion Online Data Project",style=MaterialTheme.typography.bodySmall)}}}}
