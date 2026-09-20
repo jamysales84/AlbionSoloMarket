@@ -37,7 +37,7 @@ enum class Palette { GRAY, PURPLE, ORANGE, GREEN, GRAY_GREEN, ORANGE_PURPLE }
 enum class Mode(val label:String){ TRADE("Cidade → Cidade"), LOCAL("Flip Local") }
 private val cities=listOf("Bridgewatch","Martlock","Thetford","Fort Sterling","Lymhurst","Caerleon")
 private val tradeDestinations=cities+"Black Market"
-private val monitoredItems=linkedMapOf("T4_ORE" to "Minério T4","T5_ORE" to "Minério T5","T4_WOOD" to "Madeira T4","T5_WOOD" to "Madeira T5","T4_HIDE" to "Couro T4","T5_HIDE" to "Couro T5","T4_FIBER" to "Fibra T4","T5_FIBER" to "Fibra T5","T4_ROCK" to "Pedra T4","T5_ROCK" to "Pedra T5")
+private fun tierItems(t:Int)=linkedMapOf("T${t}_ORE" to "Minério T$t","T${t}_WOOD" to "Madeira T$t","T${t}_HIDE" to "Couro T$t","T${t}_FIBER" to "Fibra T$t","T${t}_ROCK" to "Pedra T$t")
 
 class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.onCreate(b);setContent{App()}}}
 
@@ -54,12 +54,14 @@ class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.on
  var destination by remember{mutableStateOf(validDestination(prefs.getString("destination",null),"Martlock"))}
  var flipCity by remember{mutableStateOf(validCity(prefs.getString("flipCity",null),"Bridgewatch"))}
  var blackMarketFlip by remember{mutableStateOf(prefs.getBoolean("blackMarketFlip",false))}
+ var tier by remember{mutableIntStateOf(prefs.getInt("tier",4))}
+ var page by remember{mutableIntStateOf(0)}
  var opportunities by remember{mutableStateOf<List<Opportunity>>(emptyList())}
  var loading by remember{mutableStateOf(false)}
  var error by remember{mutableStateOf<String?>(null)}
  var lastUpdate by remember{mutableStateOf<String?>(null)}
  val scope=rememberCoroutineScope(); val client=remember{AodpClient()}
- LaunchedEffect(theme,palette,capital,mins,hours,mode,origin,destination,flipCity,blackMarketFlip){prefs.edit().putString("theme",theme.name).putString("palette",palette.name).putString("accent",palette.name).putString("capital",capital).putString("mins",mins).putString("hours",hours).putString("mode",mode.name).putString("origin",origin).putString("destination",destination).putString("flipCity",flipCity).putBoolean("blackMarketFlip",blackMarketFlip).apply()}
+ LaunchedEffect(theme,palette,capital,mins,hours,mode,origin,destination,flipCity,blackMarketFlip,tier){prefs.edit().putString("theme",theme.name).putString("palette",palette.name).putString("accent",palette.name).putString("capital",capital).putString("mins",mins).putString("hours",hours).putString("mode",mode.name).putString("origin",origin).putString("destination",destination).putString("flipCity",flipCity).putBoolean("blackMarketFlip",blackMarketFlip).putInt("tier",tier).apply()}
  val dark=when(theme){AppTheme.AUTO->isSystemInDarkTheme();AppTheme.DARK->true;AppTheme.LIGHT->false}
  val focusManager=LocalFocusManager.current
  fun refresh(){
@@ -68,6 +70,7 @@ class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.on
   val cap=capital.toDoubleOrNull();val travel=(hours.toIntOrNull()?:0)*60+(mins.toIntOrNull()?:0)
   if(cap==null||cap<=0||travel<=0){error="Informe Prata inicial e tempo de jogo válidos.";opportunities=emptyList();return}
   loading=true;error=null
+  val monitoredItems=tierItems(tier)
   scope.launch{
    val result=withContext(Dispatchers.IO){client.fetchPrices(monitoredItems.keys.toList(),listOf(origin,destination))}
    result.onSuccess{prices->
@@ -96,10 +99,10 @@ class MainActivity:ComponentActivity(){override fun onCreate(b:Bundle?){super.on
    if(mode==Mode.LOCAL){Text("Flip Local",style=MaterialTheme.typography.titleMedium);CitySelector("Cidade",flipCity,cities,{flipCity=it;blackMarketFlip=false;opportunities=emptyList()});if(flipCity=="Caerleon"){Text("Tipo de flip",style=MaterialTheme.typography.titleSmall);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(selected=!blackMarketFlip,onClick={blackMarketFlip=false},label={Text(if(!blackMarketFlip)"✓ Market Flip" else "Market Flip")});FilterChip(selected=blackMarketFlip,onClick={blackMarketFlip=true},label={Text(if(blackMarketFlip)"✓ Black Market Flip" else "Black Market Flip")})};Text("Selecionado: "+if(blackMarketFlip)"BLACK MARKET FLIP — Caerleon Market → Black Market" else "MARKET FLIP — compra e revenda no mercado de Caerleon",color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.titleSmall);if(blackMarketFlip)Text("Caerleon ↔ Black Market • mesma cidade • sem travessia de zona vermelha.",style=MaterialTheme.typography.bodySmall)};Text("Flip Local compara compra e revenda dentro do mesmo mercado. Em Caerleon, Black Market Flip é o termo usado aqui para negociar entre o mercado de Caerleon e o Black Market.",style=MaterialTheme.typography.bodySmall)}
    Button(onClick={refresh()},enabled=!loading&&mode==Mode.TRADE){Text(if(loading)"Atualizando..." else "Atualizar preços")}
    lastUpdate?.let{Text("Última atualização: $it",style=MaterialTheme.typography.bodySmall)};error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
-   HorizontalDivider();Text("Oportunidades",style=MaterialTheme.typography.titleLarge)
+   HorizontalDivider();Text("Oportunidades",style=MaterialTheme.typography.titleLarge);Text("Tier");Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){(1..4).forEach{t->FilterChip(selected=tier==t,onClick={tier=t;page=0;opportunities=emptyList()},label={Text("T$t")})}};Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){(5..8).forEach{t->FilterChip(selected=tier==t,onClick={tier=t;page=0;opportunities=emptyList()},label={Text("T$t")})}}
    if(mode!=Mode.TRADE){Text("SEM DADOS",style=MaterialTheme.typography.titleMedium);Text(if(blackMarketFlip&&flipCity=="Caerleon")"Black Market Flip será conectado aos preços reais em uma próxima etapa." else "Ainda não há oportunidade confiável carregada para este modo.")}
    else if(opportunities.isEmpty()){Text("SEM DADOS",style=MaterialTheme.typography.titleMedium);Text("Nenhuma oportunidade real e lucrativa foi carregada para esta rota.")}
-   else opportunities.forEach{OpportunityCard(it,monitoredItems[it.item]?:it.item)}
+   else {val visible=opportunities.drop(page*3).take(3);visible.forEach{OpportunityCard(it,tierItems(tier)[it.item]?:it.item)};if(opportunities.size>3)Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){OutlinedButton(onClick={page=(page-1).coerceAtLeast(0)},enabled=page>0){Text("Anterior")};OutlinedButton(onClick={page=if((page+1)*3<opportunities.size)page+1 else 0}){Text("Próximas 3")}}}
    Text(MarketEngine.nextBestAction(opportunities));HorizontalDivider();Text("Aparência")
    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){AppTheme.entries.forEach{t->FilterChip(theme==t,{theme=t},{Text(when(t){AppTheme.AUTO->"Auto";AppTheme.LIGHT->"Claro";AppTheme.DARK->"Escuro"})})}}
    Text("Paleta");Column(verticalArrangement=Arrangement.spacedBy(6.dp)){Palette.entries.chunked(3).forEach{group->Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){group.forEach{p->FilterChip(palette==p,{palette=p},{Text(paletteLabel(p))})}}}}
