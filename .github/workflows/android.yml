@@ -1,4 +1,4 @@
-name: Build Android Beta V0.3
+name: Build Android Beta V0.4
 on: [push, workflow_dispatch]
 jobs:
  build:
@@ -11,6 +11,6 @@ jobs:
      with: {gradle-version: '8.11.1'}
    - run: gradle testDebugUnitTest
    - run: gradle assembleDebug
-   - run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/AlbionSM-V0.3-debug.apk
+   - run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/AlbionSM-V0.4-debug.apk
    - uses: actions/upload-artifact@v4
-     with: {name: AlbionSM-V0.3-debug-apk, path: app/build/outputs/apk/debug/AlbionSM-V0.3-debug.apk}
+     with: {name: AlbionSM-V0.4-debug-apk, path: app/build/outputs/apk/debug/AlbionSM-V0.4-debug.apk}
